@@ -1,0 +1,27 @@
+{
+  "name": "logtank-client",
+  "version": "0.1.0",
+  "homepage": "https://github.com/logTank/client-javascript",
+  "authors": [
+    "Peter Grman <peter.grman@gmail.com>"
+  ],
+  "description": "logTank client for JavaScript (Browser) to support ease of use, on top of jQuery",
+  "main": "logtank.js",
+  "moduleType": [
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "logTank",
+    "logging",
+    "logs"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

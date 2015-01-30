@@ -1,6 +1,6 @@
 module LT {
     export class LogTankClient {
-        private xhr: XMLHttpRequest = null;
+        private xhrInitializer: () => XMLHttpRequest = null;
         private usingXhr2 = false;
 
         constructor(public customerKey?: string,
@@ -13,35 +13,44 @@ module LT {
             this.apiKey = apiKey;
         }
 
-        public log(message: any, tags: string) {
-            if (this.xhr) {
-                var strMessage = JSON.stringify(message);
-                this.xhr.open('POST', this.getUrl(tags));
+        public log(message: any, tags?: string) {
+            if (this.xhrInitializer) {
+                var strMessage = this.prepareMessage(message);
+                var xhr = this.xhrInitializer();
 
+                xhr.open('POST', this.getUrl(tags));
                 if (this.usingXhr2) {
-                    this.sendJsonData(strMessage);
+                    this.sendJsonData(xhr, strMessage);
                 } else {
-                    this.sendFormData(strMessage);
+                    this.sendFormData(xhr, strMessage);
                 }
             }
         }
 
-        private sendJsonData(message: string) {
-            this.xhr.setRequestHeader('Content-Type', 'application/json');
-            this.xhr.send(JSON.stringify(message));
+        private prepareMessage(message: any): string {
+            if (typeof message == 'string') {
+                message = { message: message };
+            }
+
+            return JSON.stringify(message);
         }
 
-        private sendFormData(message: string) {
-            this.xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            this.xhr.send('json=' + encodeURIComponent(message));
+        private sendJsonData(xhr: XMLHttpRequest, message: string) {
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(message);
+        }
+
+        private sendFormData(xhr: XMLHttpRequest, message: string) {
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send('json=' + encodeURIComponent(message));
         }
 
         private initializeHttpRequest() {
             this.tryInitializeXHR();
-            if (!this.xhr) {
+            if (!this.xhrInitializer) {
                 this.tryInitializeActiveXHR();
             }
-            if (!this.xhr) {
+            if (!this.xhrInitializer) {
                 console.log("Couldn't initialize XHR, browser not supported.");
             }
         }
@@ -57,24 +66,24 @@ module LT {
 
         private tryInitializeXHR() {
             try {
-                this.xhr = new XMLHttpRequest();
-                if ("withCredentials" in this.xhr) {
+                var xhr = new XMLHttpRequest();
+                if ("withCredentials" in xhr) {
                     this.usingXhr2 = true
-                } else {
-                    this.xhr = null;
-                    this.usingXhr2 = false;
+                    this.xhrInitializer = () => new XMLHttpRequest();
                 }
             } catch (ex) {
-                this.xhr = null;
+                this.xhrInitializer = null;
                 this.usingXhr2 = false;
             }
         }
 
         private tryInitializeActiveXHR() {
             try {
-                this.xhr = new (<any>window).ActiveXObject( "Microsoft.XMLHTTP" )
+                var xhr = new (<any>window).ActiveXObject("Microsoft.XMLHTTP")
                 this.usingXhr2 = false;
+                this.xhrInitializer = () => new (<any>window).ActiveXObject("Microsoft.XMLHTTP");
             } catch (ex) {
+                this.xhrInitializer = null;
             }
         }
     }

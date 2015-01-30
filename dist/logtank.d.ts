@@ -2,13 +2,14 @@ declare module LT {
     class LogTankClient {
         customerKey: string;
         apiKey: string;
-        private xhr;
+        private xhrInitializer;
         private usingXhr2;
         constructor(customerKey?: string, apiKey?: string);
         initialize(customerKey: string, apiKey: string): void;
-        log(message: any, tags: string): void;
-        private sendJsonData(message);
-        private sendFormData(message);
+        log(message: any, tags?: string): void;
+        private prepareMessage(message);
+        private sendJsonData(xhr, message);
+        private sendFormData(xhr, message);
         private initializeHttpRequest();
         private getUrl(tags?);
         private tryInitializeXHR();

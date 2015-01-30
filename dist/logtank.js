@@ -4,7 +4,7 @@ var LT;
         function LogTankClient(customerKey, apiKey) {
             this.customerKey = customerKey;
             this.apiKey = apiKey;
-            this.xhr = null;
+            this.xhrInitializer = null;
             this.usingXhr2 = false;
             this.initializeHttpRequest();
         }
@@ -13,31 +13,38 @@ var LT;
             this.apiKey = apiKey;
         };
         LogTankClient.prototype.log = function (message, tags) {
-            if (this.xhr) {
-                var strMessage = JSON.stringify(message);
-                this.xhr.open('POST', this.getUrl(tags));
+            if (this.xhrInitializer) {
+                var strMessage = this.prepareMessage(message);
+                var xhr = this.xhrInitializer();
+                xhr.open('POST', this.getUrl(tags));
                 if (this.usingXhr2) {
-                    this.sendJsonData(strMessage);
+                    this.sendJsonData(xhr, strMessage);
                 }
                 else {
-                    this.sendFormData(strMessage);
+                    this.sendFormData(xhr, strMessage);
                 }
             }
         };
-        LogTankClient.prototype.sendJsonData = function (message) {
-            this.xhr.setRequestHeader('Content-Type', 'application/json');
-            this.xhr.send(JSON.stringify(message));
+        LogTankClient.prototype.prepareMessage = function (message) {
+            if (typeof message == 'string') {
+                message = { message: message };
+            }
+            return JSON.stringify(message);
         };
-        LogTankClient.prototype.sendFormData = function (message) {
-            this.xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            this.xhr.send('json=' + encodeURIComponent(message));
+        LogTankClient.prototype.sendJsonData = function (xhr, message) {
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(message);
+        };
+        LogTankClient.prototype.sendFormData = function (xhr, message) {
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send('json=' + encodeURIComponent(message));
         };
         LogTankClient.prototype.initializeHttpRequest = function () {
             this.tryInitializeXHR();
-            if (!this.xhr) {
+            if (!this.xhrInitializer) {
                 this.tryInitializeActiveXHR();
             }
-            if (!this.xhr) {
+            if (!this.xhrInitializer) {
                 console.log("Couldn't initialize XHR, browser not supported.");
             }
         };
@@ -50,26 +57,25 @@ var LT;
         };
         LogTankClient.prototype.tryInitializeXHR = function () {
             try {
-                this.xhr = new XMLHttpRequest();
-                if ("withCredentials" in this.xhr) {
+                var xhr = new XMLHttpRequest();
+                if ("withCredentials" in xhr) {
                     this.usingXhr2 = true;
-                }
-                else {
-                    this.xhr = null;
-                    this.usingXhr2 = false;
+                    this.xhrInitializer = function () { return new XMLHttpRequest(); };
                 }
             }
             catch (ex) {
-                this.xhr = null;
+                this.xhrInitializer = null;
                 this.usingXhr2 = false;
             }
         };
         LogTankClient.prototype.tryInitializeActiveXHR = function () {
             try {
-                this.xhr = new window.ActiveXObject("Microsoft.XMLHTTP");
+                var xhr = new window.ActiveXObject("Microsoft.XMLHTTP");
                 this.usingXhr2 = false;
+                this.xhrInitializer = function () { return new window.ActiveXObject("Microsoft.XMLHTTP"); };
             }
             catch (ex) {
+                this.xhrInitializer = null;
             }
         };
         return LogTankClient;

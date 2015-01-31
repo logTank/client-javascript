@@ -21,7 +21,7 @@ module LT {
             this.apiKey = apiKey;
         }
 
-        public defaultOnErrorExceptionHandler(baseObject: any, tags?: string) {
+        public defaultOnErrorExceptionHandler(baseObject?: any, tags?: string) {
             baseObject = baseObject || {};
 
             return (errorMsg: string, url: string, line: number, col: number, exception: Error) => {
@@ -36,7 +36,7 @@ module LT {
             }
         }
 
-        public defaultAngularExceptionHandler(baseObject: any, tags?: string) {
+        public defaultAngularExceptionHandler(baseObject?: any, tags?: string) {
             baseObject = baseObject || {};
 
             return (exception: Error, cause?: string) => {
@@ -166,11 +166,11 @@ module LT {
         defaultClient.log(message, tags)
     }
 
-    export function defaultOnErrorExceptionHandler(baseObject: any, tags?: string) {
+    export function defaultOnErrorExceptionHandler(baseObject?: any, tags?: string) {
         return defaultClient.defaultOnErrorExceptionHandler(baseObject, tags);
     }
 
-    export function defaultAngularExceptionHandler(baseObject: any, tags?: string) {
+    export function defaultAngularExceptionHandler(baseObject?: any, tags?: string) {
         return defaultClient.defaultAngularExceptionHandler(baseObject, tags);
     }
 }

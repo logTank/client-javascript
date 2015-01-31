@@ -90,3 +90,9 @@ This can be done by setting a third parameter in `LT.initialize`. This is how we
 also the `defaultClient` and `LogTankClient`. `defaultClient` is a single global instance of `LogTankClient`. If you need different clients with different configurations you can create them.
 
 I believe, the best documentation is code, so [the typescript definition file for logtank-client](https://github.com/logTank/client-javascript/blob/master/dist/logtank.d.ts) is probably the best source to get all parameter and type informations. (Parameters with a `?` in the end are optional)
+
+# Contribute
+
+logtank-client itself is written in [TypeScript](http://www.typescriptlang.org/) which is a typed superset of JavaScript. This means, you can basically write JavaScript code and the TypeScript compiler won't have any problems with it, but you are encouraged to annotate it in order to check for type errors, ...
+
+you can compile the TypeScript code to JavaScript and create the min-file simply by running `gulp`. This of course only after you've installed all dev-packages with `npm install` and you should have gulp installed globally (`npm install -g gulp`).

@@ -1,5 +1,13 @@
 module LT {
+    interface IError {
+        message: string;
+        stack: string;
+        name: string;
+    }
+
     export class LogTankClient {
+        public extendMessageBeforeSending: (message: any) => any;
+
         private xhrInitializer: () => XMLHttpRequest = null;
         private usingXhr2 = false;
 
@@ -13,8 +21,38 @@ module LT {
             this.apiKey = apiKey;
         }
 
+        public defaultOnErrorExceptionHandler(baseObject: any, tags?: string) {
+            baseObject = baseObject || {};
+
+            return (errorMsg: string, url: string, line: number, col: number, exception: Error) => {
+                var message = LogTankClient.clone(baseObject);
+                message.errorMsg = errorMsg;
+                message.url = url;
+                message.lineNumber = line;
+                message.colNumber = col;
+                message.error = LogTankClient.convertErrorToSimpleObject(<any>exception);
+
+                this.log(message, tags);
+            }
+        }
+
+        public defaultAngularExceptionHandler(baseObject: any, tags?: string) {
+            baseObject = baseObject || {};
+
+            return (exception: Error, cause?: string) => {
+                var message = LogTankClient.clone(baseObject);
+                message.error = LogTankClient.convertErrorToSimpleObject(<any>exception);
+                message.cause = cause;
+
+                this.log(message, tags)
+            };
+        }
+
         public log(message: any, tags?: string) {
             if (this.xhrInitializer) {
+                if (this.extendMessageBeforeSending) {
+                    message = this.extendMessageBeforeSending(message);
+                }
                 var strMessage = this.prepareMessage(message);
                 var xhr = this.xhrInitializer();
 
@@ -86,15 +124,52 @@ module LT {
                 this.xhrInitializer = null;
             }
         }
+
+        private static clone<T>(source: T): T{
+            var target: any = {};
+
+            for (var p in source) {
+                if (source.hasOwnProperty(p)) {
+                    target[p] = source[p];
+                }
+            }
+
+            return target;
+        }
+
+        private static convertErrorToSimpleObject(error: IError) {
+            if (error) {
+                return {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                }
+            } else {
+                return {}
+            }
+        }
     }
 
-    export var client = new LogTankClient();
+    export var defaultClient = new LogTankClient();
 
-    export function initialize(customerKey: string, apiKey: string) {
-        client.initialize(customerKey, apiKey);
+    export function initialize(customerKey: string, apiKey: string,
+                               extendMessageBeforeSending?: (message: any) => any) {
+        defaultClient.initialize(customerKey, apiKey);
+
+        if (extendMessageBeforeSending) {
+            defaultClient.extendMessageBeforeSending = extendMessageBeforeSending;
+        }
     }
 
-    export function log(message: any, tags: string) {
-        client.log(message, tags)
+    export function log(message: any, tags?: string) {
+        defaultClient.log(message, tags)
+    }
+
+    export function defaultOnErrorExceptionHandler(baseObject: any, tags?: string) {
+        return defaultClient.defaultOnErrorExceptionHandler(baseObject, tags);
+    }
+
+    export function defaultAngularExceptionHandler(baseObject: any, tags?: string) {
+        return defaultClient.defaultAngularExceptionHandler(baseObject, tags);
     }
 }

@@ -12,8 +12,34 @@ var LT;
             this.customerKey = customerKey;
             this.apiKey = apiKey;
         };
+        LogTankClient.prototype.defaultOnErrorExceptionHandler = function (baseObject, tags) {
+            var _this = this;
+            baseObject = baseObject || {};
+            return function (errorMsg, url, line, col, exception) {
+                var message = LogTankClient.clone(baseObject);
+                message.errorMsg = errorMsg;
+                message.url = url;
+                message.lineNumber = line;
+                message.colNumber = col;
+                message.error = LogTankClient.convertErrorToSimpleObject(exception);
+                _this.log(message, tags);
+            };
+        };
+        LogTankClient.prototype.defaultAngularExceptionHandler = function (baseObject, tags) {
+            var _this = this;
+            baseObject = baseObject || {};
+            return function (exception, cause) {
+                var message = LogTankClient.clone(baseObject);
+                message.error = LogTankClient.convertErrorToSimpleObject(exception);
+                message.cause = cause;
+                _this.log(message, tags);
+            };
+        };
         LogTankClient.prototype.log = function (message, tags) {
             if (this.xhrInitializer) {
+                if (this.extendMessageBeforeSending) {
+                    message = this.extendMessageBeforeSending(message);
+                }
                 var strMessage = this.prepareMessage(message);
                 var xhr = this.xhrInitializer();
                 xhr.open('POST', this.getUrl(tags));
@@ -78,16 +104,48 @@ var LT;
                 this.xhrInitializer = null;
             }
         };
+        LogTankClient.clone = function (source) {
+            var target = {};
+            for (var p in source) {
+                if (source.hasOwnProperty(p)) {
+                    target[p] = source[p];
+                }
+            }
+            return target;
+        };
+        LogTankClient.convertErrorToSimpleObject = function (error) {
+            if (error) {
+                return {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                };
+            }
+            else {
+                return {};
+            }
+        };
         return LogTankClient;
     })();
     LT.LogTankClient = LogTankClient;
-    LT.client = new LogTankClient();
-    function initialize(customerKey, apiKey) {
-        LT.client.initialize(customerKey, apiKey);
+    LT.defaultClient = new LogTankClient();
+    function initialize(customerKey, apiKey, extendMessageBeforeSending) {
+        LT.defaultClient.initialize(customerKey, apiKey);
+        if (extendMessageBeforeSending) {
+            LT.defaultClient.extendMessageBeforeSending = extendMessageBeforeSending;
+        }
     }
     LT.initialize = initialize;
     function log(message, tags) {
-        LT.client.log(message, tags);
+        LT.defaultClient.log(message, tags);
     }
     LT.log = log;
+    function defaultOnErrorExceptionHandler(baseObject, tags) {
+        return LT.defaultClient.defaultOnErrorExceptionHandler(baseObject, tags);
+    }
+    LT.defaultOnErrorExceptionHandler = defaultOnErrorExceptionHandler;
+    function defaultAngularExceptionHandler(baseObject, tags) {
+        return LT.defaultClient.defaultAngularExceptionHandler(baseObject, tags);
+    }
+    LT.defaultAngularExceptionHandler = defaultAngularExceptionHandler;
 })(LT || (LT = {}));

@@ -38,7 +38,8 @@ var LT;
         LogTankClient.prototype.log = function (message, tags) {
             if (this.xhrInitializer) {
                 if (this.extendMessageBeforeSending) {
-                    message = this.extendMessageBeforeSending(message);
+                    var newMessage = this.extendMessageBeforeSending(message);
+                    message = newMessage || message;
                 }
                 var strMessage = this.prepareMessage(message);
                 var xhr = this.xhrInitializer();

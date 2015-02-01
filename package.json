@@ -1,7 +1,7 @@
 {
   "name": "client-javascript",
   "version": "0.2.0",
-  "description": "logTank client for JavaScript (Browser) to support ease of use, on top of jQuery",
+  "description": "logTank client for JavaScript (Browser) to support ease of use",
   "main": "gulp.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

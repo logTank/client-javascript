@@ -1,6 +1,6 @@
 {
   "name": "client-javascript",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "logTank client for JavaScript (Browser) to support ease of use",
   "main": "gulp.js",
   "scripts": {

@@ -78,7 +78,7 @@ var LT;
         LogTankClient.prototype.getUrl = function (tags) {
             var ret = 'http://store.logtank.com/' + this.customerKey + '/' + this.apiKey;
             if (tags) {
-                ret = ret + '/' + tags.replace('.', '/');
+                ret = ret + '/' + tags.replace('/\./g', '/');
             }
             return ret;
         };

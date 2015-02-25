@@ -79,7 +79,7 @@ module LT {
 
         private logLaterTimeout() {
             this.logQueue.tags.forEach(tags => {
-                this.logNow(this.logQueue[tags], tags);
+                this.logNow(this.logQueue.dataPerTag[tags], tags);
             });
             this.logQueue = null;
         }

@@ -63,7 +63,7 @@ var LT;
         LogTankClient.prototype.logLaterTimeout = function () {
             var _this = this;
             this.logQueue.tags.forEach(function (tags) {
-                _this.logNow(_this.logQueue[tags], tags);
+                _this.logNow(_this.logQueue.dataPerTag[tags], tags);
             });
             this.logQueue = null;
         };

@@ -2,7 +2,7 @@ var LT;
 (function (LT) {
     var LogTankClient = (function () {
         function LogTankClient(customerKey, apiKey, queueTimeoutLength) {
-            if (queueTimeoutLength === void 0) { queueTimeoutLength = 100; }
+            if (queueTimeoutLength === void 0) { queueTimeoutLength = 2000; }
             this.customerKey = customerKey;
             this.apiKey = apiKey;
             this.queueTimeoutLength = queueTimeoutLength;
@@ -162,7 +162,7 @@ var LT;
     LT.LogTankClient = LogTankClient;
     LT.defaultClient = new LogTankClient();
     function initialize(customerKey, apiKey, extendMessageBeforeSending, queueTimeoutLength) {
-        if (queueTimeoutLength === void 0) { queueTimeoutLength = 100; }
+        if (queueTimeoutLength === void 0) { queueTimeoutLength = 2000; }
         LT.defaultClient.initialize(customerKey, apiKey);
         LT.defaultClient.queueTimeoutLength = queueTimeoutLength;
         if (extendMessageBeforeSending) {

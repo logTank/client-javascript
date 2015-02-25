@@ -1,6 +1,6 @@
 {
   "name": "logtank-client",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "homepage": "https://github.com/logTank/client-javascript",
   "authors": [
     "Peter Grman <peter.grman@gmail.com>"

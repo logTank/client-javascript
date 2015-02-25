@@ -17,7 +17,7 @@ module LT {
 
         constructor(public customerKey?: string,
                     public apiKey?: string,
-                    public queueTimeoutLength: number = 100) {
+                    public queueTimeoutLength: number = 2000) {
             this.initializeHttpRequest();
         }
 
@@ -189,7 +189,7 @@ module LT {
 
     export function initialize(customerKey: string, apiKey: string,
                                extendMessageBeforeSending?: (message: any) => any,
-                               queueTimeoutLength: number = 100) {
+                               queueTimeoutLength: number = 2000) {
         defaultClient.initialize(customerKey, apiKey);
         defaultClient.queueTimeoutLength = queueTimeoutLength;
 

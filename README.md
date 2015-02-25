@@ -16,13 +16,15 @@ Initialize it with `LT.initialize('CUSTOMER_KEY', 'API_KEY')`
 
     LT.log("simple string message", "tag.subtag");
     LT.log({ error: "error title", code: 123, exception: errObject }, "tag.errors.subsubtag");
+    LT.log({ error: "error title", code: 123, exception: errObject }, "tag.errors.subsubtag", true);
     LT.log({ error: "error title", code: 123, exception: errObject });
     ...
-    
+
 ### Parameters:
 
 1. Parameter: Error message (simple string) or JSON object with properties. Any JSON object is valid. It will be serialized with `JSON.stringify`
 2. Parameter: *tags*, which can be used by logTank to route the message to different sources. *Tags* can consit of lower-case characters and numbers and are seperated with dots (`.`).
+3. Parameter: *instantly*, which tells if the message should be sent immediately to the server, or only later together with all the other messages. By default messages are only sent every 2s to not overload the browser. However if it is an exception you probably want to send it instantly.
 
 ## Logging exceptions
 
@@ -77,7 +79,7 @@ This can be done by setting a third parameter in `LT.initialize`. This is how we
         };
         return message;
     );
-    
+
 # The `defaultClient`
 
 `LT` exposes additionally to

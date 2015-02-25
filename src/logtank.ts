@@ -10,9 +10,14 @@ module LT {
 
         private xhrInitializer: () => XMLHttpRequest = null;
         private usingXhr2 = false;
+        private logQueue: {
+            dataPerTag: { [tag: string]: any[] };
+            tags: string[];
+        } = null;
 
         constructor(public customerKey?: string,
-                    public apiKey?: string) {
+                    public apiKey?: string,
+                    public queueTimeoutLength: number = 100) {
             this.initializeHttpRequest();
         }
 
@@ -32,7 +37,7 @@ module LT {
                 message.colNumber = col;
                 message.error = LogTankClient.convertErrorToSimpleObject(<any>exception);
 
-                this.log(message, tags);
+                this.log(message, tags, true);
             }
         }
 
@@ -44,11 +49,40 @@ module LT {
                 message.error = LogTankClient.convertErrorToSimpleObject(<any>exception);
                 message.cause = cause;
 
-                this.log(message, tags)
+                this.log(message, tags, true)
             };
         }
 
-        public log(message: any, tags?: string) {
+        public log(message: any, tags?: string, instantly?: boolean) {
+            if (instantly || !this.queueTimeoutLength || this.queueTimeoutLength <= 0) {
+                this.logNow(message, tags);
+            } else {
+                this.logLater(message, tags)
+            }
+        }
+
+        private logLater(message: any, tags?: string) {
+            tags = tags || '';
+
+            if (!this.logQueue) {
+                this.logQueue = { dataPerTag: {}, tags: [] }
+                setTimeout(() => this.logLaterTimeout(), this.queueTimeoutLength);
+            }
+            if (!this.logQueue.dataPerTag[tags]) {
+                this.logQueue.dataPerTag[tags] = [];
+                this.logQueue.tags.push(tags);
+            }
+            this.logQueue.dataPerTag[tags].push(message);
+        }
+
+        private logLaterTimeout() {
+            this.logQueue.tags.forEach(tags => {
+                this.logNow(this.logQueue[tags], tags);
+            });
+            this.logQueue = null;
+        }
+
+        private logNow(message: any, tags?: string) {
             if (this.xhrInitializer) {
                 if (this.extendMessageBeforeSending) {
                     var newMessage = this.extendMessageBeforeSending(message);
@@ -154,16 +188,18 @@ module LT {
     export var defaultClient = new LogTankClient();
 
     export function initialize(customerKey: string, apiKey: string,
-                               extendMessageBeforeSending?: (message: any) => any) {
+                               extendMessageBeforeSending?: (message: any) => any,
+                               queueTimeoutLength: number = 100) {
         defaultClient.initialize(customerKey, apiKey);
+        defaultClient.queueTimeoutLength = queueTimeoutLength;
 
         if (extendMessageBeforeSending) {
             defaultClient.extendMessageBeforeSending = extendMessageBeforeSending;
         }
     }
 
-    export function log(message: any, tags?: string) {
-        defaultClient.log(message, tags)
+    export function log(message: any, tags?: string, instantly?: boolean) {
+        defaultClient.log(message, tags, instantly)
     }
 
     export function defaultOnErrorExceptionHandler(baseObject?: any, tags?: string) {

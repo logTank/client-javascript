@@ -1,11 +1,14 @@
 var LT;
 (function (LT) {
     var LogTankClient = (function () {
-        function LogTankClient(customerKey, apiKey) {
+        function LogTankClient(customerKey, apiKey, queueTimeoutLength) {
+            if (queueTimeoutLength === void 0) { queueTimeoutLength = 100; }
             this.customerKey = customerKey;
             this.apiKey = apiKey;
+            this.queueTimeoutLength = queueTimeoutLength;
             this.xhrInitializer = null;
             this.usingXhr2 = false;
+            this.logQueue = null;
             this.initializeHttpRequest();
         }
         LogTankClient.prototype.initialize = function (customerKey, apiKey) {
@@ -22,7 +25,7 @@ var LT;
                 message.lineNumber = line;
                 message.colNumber = col;
                 message.error = LogTankClient.convertErrorToSimpleObject(exception);
-                _this.log(message, tags);
+                _this.log(message, tags, true);
             };
         };
         LogTankClient.prototype.defaultAngularExceptionHandler = function (baseObject, tags) {
@@ -32,10 +35,38 @@ var LT;
                 var message = LogTankClient.clone(baseObject);
                 message.error = LogTankClient.convertErrorToSimpleObject(exception);
                 message.cause = cause;
-                _this.log(message, tags);
+                _this.log(message, tags, true);
             };
         };
-        LogTankClient.prototype.log = function (message, tags) {
+        LogTankClient.prototype.log = function (message, tags, instantly) {
+            if (instantly || !this.queueTimeoutLength || this.queueTimeoutLength <= 0) {
+                this.logNow(message, tags);
+            }
+            else {
+                this.logLater(message, tags);
+            }
+        };
+        LogTankClient.prototype.logLater = function (message, tags) {
+            var _this = this;
+            tags = tags || '';
+            if (!this.logQueue) {
+                this.logQueue = { dataPerTag: {}, tags: [] };
+                setTimeout(function () { return _this.logLaterTimeout(); }, this.queueTimeoutLength);
+            }
+            if (!this.logQueue.dataPerTag[tags]) {
+                this.logQueue.dataPerTag[tags] = [];
+                this.logQueue.tags.push(tags);
+            }
+            this.logQueue.dataPerTag[tags].push(message);
+        };
+        LogTankClient.prototype.logLaterTimeout = function () {
+            var _this = this;
+            this.logQueue.tags.forEach(function (tags) {
+                _this.logNow(_this.logQueue[tags], tags);
+            });
+            this.logQueue = null;
+        };
+        LogTankClient.prototype.logNow = function (message, tags) {
             if (this.xhrInitializer) {
                 if (this.extendMessageBeforeSending) {
                     var newMessage = this.extendMessageBeforeSending(message);
@@ -130,15 +161,17 @@ var LT;
     })();
     LT.LogTankClient = LogTankClient;
     LT.defaultClient = new LogTankClient();
-    function initialize(customerKey, apiKey, extendMessageBeforeSending) {
+    function initialize(customerKey, apiKey, extendMessageBeforeSending, queueTimeoutLength) {
+        if (queueTimeoutLength === void 0) { queueTimeoutLength = 100; }
         LT.defaultClient.initialize(customerKey, apiKey);
+        LT.defaultClient.queueTimeoutLength = queueTimeoutLength;
         if (extendMessageBeforeSending) {
             LT.defaultClient.extendMessageBeforeSending = extendMessageBeforeSending;
         }
     }
     LT.initialize = initialize;
-    function log(message, tags) {
-        LT.defaultClient.log(message, tags);
+    function log(message, tags, instantly) {
+        LT.defaultClient.log(message, tags, instantly);
     }
     LT.log = log;
     function defaultOnErrorExceptionHandler(baseObject, tags) {

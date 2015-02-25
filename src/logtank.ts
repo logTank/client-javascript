@@ -54,6 +54,8 @@ module LT {
         }
 
         public log(message: any, tags?: string, instantly?: boolean) {
+            message = this.securelyExtendMessage(message);
+
             if (instantly || !this.queueTimeoutLength || this.queueTimeoutLength <= 0) {
                 this.logNow(message, tags);
             } else {
@@ -84,10 +86,6 @@ module LT {
 
         private logNow(message: any, tags?: string) {
             if (this.xhrInitializer) {
-                if (this.extendMessageBeforeSending) {
-                    var newMessage = this.extendMessageBeforeSending(message);
-                    message = newMessage || message;
-                }
                 var strMessage = this.prepareMessage(message);
                 var xhr = this.xhrInitializer();
 
@@ -98,6 +96,14 @@ module LT {
                     this.sendFormData(xhr, strMessage);
                 }
             }
+        }
+
+        private securelyExtendMessage(message: any): any {
+            if (this.extendMessageBeforeSending) {
+                var newMessage = this.extendMessageBeforeSending(message);
+                message = newMessage || message;
+            }
+            return message;
         }
 
         private prepareMessage(message: any): string {

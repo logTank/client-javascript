@@ -39,6 +39,7 @@ var LT;
             };
         };
         LogTankClient.prototype.log = function (message, tags, instantly) {
+            message = this.securelyExtendMessage(message);
             if (instantly || !this.queueTimeoutLength || this.queueTimeoutLength <= 0) {
                 this.logNow(message, tags);
             }
@@ -68,10 +69,6 @@ var LT;
         };
         LogTankClient.prototype.logNow = function (message, tags) {
             if (this.xhrInitializer) {
-                if (this.extendMessageBeforeSending) {
-                    var newMessage = this.extendMessageBeforeSending(message);
-                    message = newMessage || message;
-                }
                 var strMessage = this.prepareMessage(message);
                 var xhr = this.xhrInitializer();
                 xhr.open('POST', this.getUrl(tags));
@@ -82,6 +79,13 @@ var LT;
                     this.sendFormData(xhr, strMessage);
                 }
             }
+        };
+        LogTankClient.prototype.securelyExtendMessage = function (message) {
+            if (this.extendMessageBeforeSending) {
+                var newMessage = this.extendMessageBeforeSending(message);
+                message = newMessage || message;
+            }
+            return message;
         };
         LogTankClient.prototype.prepareMessage = function (message) {
             if (typeof message == 'string') {

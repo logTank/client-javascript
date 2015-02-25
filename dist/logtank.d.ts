@@ -15,6 +15,7 @@ declare module LT {
         private logLater(message, tags?);
         private logLaterTimeout();
         private logNow(message, tags?);
+        private securelyExtendMessage(message);
         private prepareMessage(message);
         private sendJsonData(xhr, message);
         private sendFormData(xhr, message);

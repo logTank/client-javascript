@@ -1,4 +1,6 @@
 module LT {
+    export var storeServerUrl = 'https://store.logtank.com/';
+
     interface IError {
         message: string;
         stack: string;
@@ -17,13 +19,15 @@ module LT {
 
         constructor(public customerKey?: string,
                     public apiKey?: string,
+                    public defaultTags?: string,
                     public queueTimeoutLength: number = 2000) {
             this.initializeHttpRequest();
         }
 
-        public initialize(customerKey: string, apiKey: string) {
+        public initialize(customerKey: string, apiKey: string, defaultTags?: string) {
             this.customerKey = customerKey;
             this.apiKey = apiKey;
+            this.defaultTags = defaultTags;
         }
 
         public defaultOnErrorExceptionHandler(baseObject?: any, tags?: string) {
@@ -135,8 +139,11 @@ module LT {
         }
 
         private getUrl(tags?: string) {
-            var ret = 'http://store.logtank.com/' + this.customerKey + '/' + this.apiKey;
+            var ret = storeServerUrl + this.customerKey + '/' + this.apiKey;
 
+            if (this.defaultTags) {
+                ret = ret + '/' + this.defaultTags.replace(/\./g, '/');
+            }
             if (tags) {
                 ret = ret + '/' + tags.replace(/\./g, '/');
             }
@@ -193,10 +200,10 @@ module LT {
 
     export var defaultClient = new LogTankClient();
 
-    export function initialize(customerKey: string, apiKey: string,
+    export function initialize(customerKey: string, apiKey: string, defaultTags?: string,
                                extendMessageBeforeSending?: (message: any) => any,
                                queueTimeoutLength: number = 2000) {
-        defaultClient.initialize(customerKey, apiKey);
+        defaultClient.initialize(customerKey, apiKey, defaultTags);
         defaultClient.queueTimeoutLength = queueTimeoutLength;
 
         if (extendMessageBeforeSending) {

@@ -1,19 +1,22 @@
 var LT;
 (function (LT) {
+    LT.storeServerUrl = 'https://store.logtank.com/';
     var LogTankClient = (function () {
-        function LogTankClient(customerKey, apiKey, queueTimeoutLength) {
+        function LogTankClient(customerKey, apiKey, defaultTags, queueTimeoutLength) {
             if (queueTimeoutLength === void 0) { queueTimeoutLength = 2000; }
             this.customerKey = customerKey;
             this.apiKey = apiKey;
+            this.defaultTags = defaultTags;
             this.queueTimeoutLength = queueTimeoutLength;
             this.xhrInitializer = null;
             this.usingXhr2 = false;
             this.logQueue = null;
             this.initializeHttpRequest();
         }
-        LogTankClient.prototype.initialize = function (customerKey, apiKey) {
+        LogTankClient.prototype.initialize = function (customerKey, apiKey, defaultTags) {
             this.customerKey = customerKey;
             this.apiKey = apiKey;
+            this.defaultTags = defaultTags;
         };
         LogTankClient.prototype.defaultOnErrorExceptionHandler = function (baseObject, tags) {
             var _this = this;
@@ -111,7 +114,10 @@ var LT;
             }
         };
         LogTankClient.prototype.getUrl = function (tags) {
-            var ret = 'http://store.logtank.com/' + this.customerKey + '/' + this.apiKey;
+            var ret = LT.storeServerUrl + this.customerKey + '/' + this.apiKey;
+            if (this.defaultTags) {
+                ret = ret + '/' + this.defaultTags.replace(/\./g, '/');
+            }
             if (tags) {
                 ret = ret + '/' + tags.replace(/\./g, '/');
             }
@@ -165,9 +171,9 @@ var LT;
     })();
     LT.LogTankClient = LogTankClient;
     LT.defaultClient = new LogTankClient();
-    function initialize(customerKey, apiKey, extendMessageBeforeSending, queueTimeoutLength) {
+    function initialize(customerKey, apiKey, defaultTags, extendMessageBeforeSending, queueTimeoutLength) {
         if (queueTimeoutLength === void 0) { queueTimeoutLength = 2000; }
-        LT.defaultClient.initialize(customerKey, apiKey);
+        LT.defaultClient.initialize(customerKey, apiKey, defaultTags);
         LT.defaultClient.queueTimeoutLength = queueTimeoutLength;
         if (extendMessageBeforeSending) {
             LT.defaultClient.extendMessageBeforeSending = extendMessageBeforeSending;

@@ -6,7 +6,7 @@
     "Peter Grman <peter.grman@gmail.com>"
   ],
   "description": "logTank client for JavaScript (Browser) to support ease of use",
-  "main": "logtank.js",
+  "main": "dist/logtank.js",
   "moduleType": [
     "globals",
     "node"
